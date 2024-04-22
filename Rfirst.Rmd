@@ -1,0 +1,100 @@
+---
+title: "primeiro webscraping em R"
+author: Vinicius Cesar Sena Torres
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2024-04-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(rvest)
+library(dplyr)
+
+link_dados <- "https://www.booking.com/attractions/searchresults/es/madrid.pt-br.html?label=gen173nr-1FCAEoggI46AdIM1gEaCCIAQGYAS24ARfIAQzYAQHoAQH4AQuIAgGoAgO4AsWurbAGwAIB0gIkYzQ0ZGY3NjItYjkyNy00ZjhmLTlhNmMtOWYzZmJmZWZhYWEz2AIG4AIB&aid=304142&source=attractions_index_open_shop"
+
+
+
+```
+
+```{r}
+page <- read_html(link_dados)
+```
+
+```{r}
+#operador pipe %>% (pega o que esta em sua esquerda e insere no argumento seguinte
+
+nome_atracao <- html_nodes(page, ".css-jv2qn6") %>% html_text()
+print(nome_atracao)
+
+
+```
+
+```{r}
+nota_atracao <- html_nodes(page, ".css-35ezg3:nth-child(1)") %>% html_text()
+print(nota_atracao)
+
+```
+
+```{r}
+quantidade_reviews <- html_nodes(page, ".css-35ezg3~ .css-35ezg3+ .a53cbfa6de") %>%
+  html_text()
+print(quantidade_reviews)
+```
+
+```{r}
+preco_atracao <- html_nodes(page, ".css-13pzcpe") %>% html_text()
+print(preco_atracao)
+```
+
+```{r}
+atracoes <- data.frame(nome_atracao, quantidade_reviews, preco_atracao, Tipo_de_Atracao, stringsAsFactors = FALSE)
+str(atracoes)
+
+```
+
+```{r}
+# Remover a linha 32 do dataframe 
+atracoes <- atracoes[-32, ]
+
+atracoes <- cbind(atracoes, nota_da_atracao)
+
+rownames(atracoes) <- NULL
+```
+
+```{r}
+# Aplicando na.omit() para remover linhas com valores NA na coluna "nota_atracao"
+atracoes <- na.omit(atracoes)
+```
+
+```{r}
+
+print(atracoes)
+```
+
+```{r}
+
+preco_atracao_numerico <- as.numeric(gsub("[^0-9.]", "", preco_atracao))
+```
+
+```{r}
+
+preco_atracao_formatado <- format(preco_atracao_numerico, decimal.mark = ",", big.mark = ".")
+
+
+
+```
+
+```{r}
+
+# Escrevendo o dataframe em um arquivo CSV
+write.csv(atracoes, "atracoes.csv", row.names = FALSE)
+
+
+```
